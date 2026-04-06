@@ -29,16 +29,29 @@ npm install
 
 ### 3. Налаштування змінних середовища
 
-1. Відкрийте файл `.env`
-2. Замініть `MONGODB_URI` на ваш Connection String з Atlas:
+Скопіюйте файл `.env.example` у `.env` та заповніть ваші дані:
+
+```bash
+cp .env.example .env
+```
+
+Потім відредагуйте `.env` файл та додайте ваш MongoDB Atlas connection string:
 
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster-name.mongodb.net/database-name?retryWrites=true&w=majority
-PORT=8080
+PORT=4000
 NODE_ENV=development
 ```
 
-**Порада:** Якщо порт 8080 зайнятий, спробуйте 3000, 3001, 5000 або будь-який інший вільний порт.
+**⚠️ Важливо:** Не комітьте файл `.env` у репозиторій - він містить конфіденційні дані!
+
+**Приклад Connection String з Atlas:**
+
+```
+mongodb+srv://your_username:your_password@cluster0.xyz.mongodb.net/users?retryWrites=true&w=majority
+```
+
+**Порада:** Якщо порт 4000 зайнятий, спробуйте 3000, 8080, 4000 або будь-який інший вільний порт.
 
 **Приклад Connection String з Atlas:**
 
@@ -60,11 +73,33 @@ npm run dev
 npm start
 ```
 
+**❌ Якщо ви бачите помилку `EADDRINUSE`:**
+
+Це означає, що порт зайнятий іншим процесом. Рішення:
+
+1. **Зупиніть попередній сервер** (в терміналі, де він запущений, натисніть `Ctrl+C`)
+2. **Або змініть порт** в `.env` файлі:
+   ```env
+   PORT=4000  # або 3000, 8080, тощо
+   ```
+3. **Перезапустіть сервер:**
+   ```bash
+   npm run dev
+   ```
+
+**На Windows** для примусового звільнення порту:
+
+```cmd
+# В командному рядку (не в Git Bash):
+netstat -ano | findstr :4000
+taskkill /PID <PID_NUMBER> /F
+```
+
 **Очікуваний результат:**
 
 ```
-✓ Сервер запущений на http://localhost:8080
-✓ Документація API: http://localhost:8080/api/docs
+✓ Сервер запущений на http://localhost:4000
+✓ Документація API: http://localhost:4000/api/docs
 ✓ MongoDB підключена успішно
 ```
 
@@ -72,43 +107,41 @@ npm start
 
 Це означає, що порт зайнятий. Рішення:
 
-1. **Змініть порт** в `.env` файлі:
-
+1. **Зупиніть попередній сервер** (натисніть `Ctrl+C` у терміналі, де він запущений)
+2. **Або змініть порт** в `.env` файлі:
    ```env
-   PORT=3000  # або 3001, 5000, 8081, тощо
+   PORT=3000  # або 5000, 8080, тощо
    ```
-
-2. **Перезапустіть сервер:**
-
+3. **Перезапустіть сервер:**
    ```bash
    npm run dev
    ```
 
-3. **Або знайдіть та закрийте процес**, що використовує порт:
-   ```bash
-   # На Windows:
-   netstat -ano | findstr :8080
-   taskkill /PID <PID_NUMBER> /F
-   ```
+**💡 Порада:** Завжди перевіряйте, чи не запущений вже сервер, перед запуском нового екземпляра!
 
-Сервер запуститься на `http://localhost:8080` (або на порту, який ви вказали)
+Сервер запуститься на `http://localhost:4000` (або на порту, який ви вказали)
 
 ## 📚 API Endpoints
 
-| Метод  | URL              | Опис                       | Приклад                                                                   |
-| ------ | ---------------- | -------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/api/users`     | Отримати всіх користувачів | `curl http://localhost:8080/api/users`                                    |
-| GET    | `/api/users/:id` | Отримати користувача за ID | `curl http://localhost:8080/api/users/507f1f77bcf86cd799439011`           |
-| POST   | `/api/users`     | Додати нового користувача  | `curl -X POST http://localhost:8080/api/users`                            |
-| PUT    | `/api/users/:id` | Оновити користувача        | `curl -X PUT http://localhost:8080/api/users/507f1f77bcf86cd799439011`    |
-| DELETE | `/api/users/:id` | Видалити користувача       | `curl -X DELETE http://localhost:8080/api/users/507f1f77bcf86cd799439011` |
+| Метод  | URL                            | Опис                                         | Приклад                                                                        |
+| ------ | ------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| GET    | `/api/users`                   | Отримати всіх користувачів                   | `curl http://localhost:4000/api/users`                                         |
+| GET    | `/api/users?fields=name,email` | Отримати користувачів з проекцією            | `curl "http://localhost:4000/api/users?fields=name,email,age"`                 |
+| GET    | `/api/users/:id`               | Отримати користувача за ID                   | `curl http://localhost:4000/api/users/507f1f77bcf86cd799439011`                |
+| POST   | `/api/users`                   | Додати нового користувача (insertOne)        | `curl -X POST http://localhost:4000/api/users`                                 |
+| POST   | `/api/users/bulk`              | Додати декількох користувачів (insertMany)   | `curl -X POST http://localhost:4000/api/users/bulk`                            |
+| PUT    | `/api/users/:id`               | Оновити користувача (updateOne)              | `curl -X PUT http://localhost:4000/api/users/507f1f77bcf86cd799439011`         |
+| PUT    | `/api/users`                   | Оновити декількох користувачів (updateMany)  | `curl -X PUT http://localhost:4000/api/users`                                  |
+| PUT    | `/api/users/:id/replace`       | Замінити користувача (replaceOne)            | `curl -X PUT http://localhost:4000/api/users/507f1f77bcf86cd799439011/replace` |
+| DELETE | `/api/users/:id`               | Видалити користувача (deleteOne)             | `curl -X DELETE http://localhost:4000/api/users/507f1f77bcf86cd799439011`      |
+| DELETE | `/api/users`                   | Видалити декількох користувачів (deleteMany) | `curl -X DELETE http://localhost:4000/api/users`                               |
 
 ## 📝 Приклади запитів
 
 ### Додати користувача (POST):
 
 ```bash
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:4000/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Іван Петренко",
@@ -140,19 +173,19 @@ curl -X POST http://localhost:8080/api/users \
 ### Отримати всіх користувачів (GET):
 
 ```bash
-curl http://localhost:8080/api/users
+curl http://localhost:4000/api/users
 ```
 
 ### Отримати користувача за ID (GET):
 
 ```bash
-curl http://localhost:8080/api/users/507f1f77bcf86cd799439011
+curl http://localhost:4000/api/users/507f1f77bcf86cd799439011
 ```
 
 ### Оновити користувача (PUT):
 
 ```bash
-curl -X PUT http://localhost:8080/api/users/507f1f77bcf86cd799439011 \
+curl -X PUT http://localhost:4000/api/users/507f1f77bcf86cd799439011 \
   -H "Content-Type: application/json" \
   -d '{
     "age": 26,
@@ -163,7 +196,152 @@ curl -X PUT http://localhost:8080/api/users/507f1f77bcf86cd799439011 \
 ### Видалити користувача (DELETE):
 
 ```bash
-curl -X DELETE http://localhost:8080/api/users/507f1f77bcf86cd799439011
+curl -X DELETE http://localhost:4000/api/users/507f1f77bcf86cd799439011
+```
+
+### Отримати користувачів з проекцією (GET з fields):
+
+```bash
+curl "http://localhost:4000/api/users?fields=name,email,age"
+```
+
+**Відповідь:**
+
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Іван Петренко",
+      "email": "ivan@example.com",
+      "age": 25
+    },
+    {
+      "_id": "507f1f77bcf86cd799439012",
+      "name": "Марія Іваненко",
+      "email": "maria@example.com",
+      "age": 30
+    }
+  ]
+}
+```
+
+### Додати декількох користувачів (POST bulk):
+
+```bash
+curl -X POST http://localhost:4000/api/users/bulk \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "name": "Олексій Коваленко",
+      "email": "oleksiy@example.com",
+      "age": 28,
+      "city": "Одеса"
+    },
+    {
+      "name": "Анна Сидоренко",
+      "email": "anna@example.com",
+      "age": 22,
+      "city": "Харків"
+    }
+  ]'
+```
+
+**Відповідь:**
+
+```json
+{
+  "success": true,
+  "message": "2 користувачів успішно створено",
+  "data": {
+    "insertedIds": {
+      "0": "507f1f77bcf86cd799439013",
+      "1": "507f1f77bcf86cd799439014"
+    },
+    "insertedCount": 2
+  }
+}
+```
+
+### Оновити декількох користувачів (PUT updateMany):
+
+```bash
+curl -X PUT http://localhost:4000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filter": { "city": "Київ" },
+    "update": { "active": false }
+  }'
+```
+
+**Відповідь:**
+
+```json
+{
+  "success": true,
+  "message": "3 користувачів успішно оновлено",
+  "data": {
+    "matchedCount": 3,
+    "modifiedCount": 3
+  }
+}
+```
+
+### Замінити користувача (PUT replaceOne):
+
+```bash
+curl -X PUT http://localhost:4000/api/users/507f1f77bcf86cd799439011/replace \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Іван Новий",
+    "email": "ivan.new@example.com",
+    "age": 26,
+    "city": "Львів",
+    "active": true
+  }'
+```
+
+**Відповідь:**
+
+```json
+{
+  "success": true,
+  "message": "Користувач успішно замінений",
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "Іван Новий",
+    "email": "ivan.new@example.com",
+    "age": 26,
+    "city": "Львів",
+    "active": true,
+    "createdAt": "2024-04-06T12:00:00.000Z",
+    "updatedAt": "2024-04-06T12:00:00.000Z"
+  }
+}
+```
+
+### Видалити декількох користувачів (DELETE deleteMany):
+
+```bash
+curl -X DELETE http://localhost:4000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filter": { "active": false }
+  }'
+```
+
+**Відповідь:**
+
+```json
+{
+  "success": true,
+  "message": "5 користувачів успішно видалено",
+  "data": {
+    "deletedCount": 5
+  }
+}
 ```
 
 ## 📂 Структура проекту
@@ -186,10 +364,14 @@ curl -X DELETE http://localhost:8080/api/users/507f1f77bcf86cd799439011
 
 ## 🎯 Функціональність
 
-- ✅ Читання даних з MongoDB (GET /api/users)
-- ✅ Додавання нових користувачів (POST /api/users)
-- ✅ Оновлення даних користувача (PUT /api/users/:id)
-- ✅ Видалення користувачів (DELETE /api/users/:id)
+- ✅ Читання даних з MongoDB (GET /api/users з підтримкою проекції)
+- ✅ Додавання нових користувачів (POST /api/users - insertOne)
+- ✅ Масове додавання користувачів (POST /api/users/bulk - insertMany)
+- ✅ Оновлення даних користувача (PUT /api/users/:id - updateOne)
+- ✅ Масове оновлення користувачів (PUT /api/users - updateMany)
+- ✅ Заміна користувача (PUT /api/users/:id/replace - replaceOne)
+- ✅ Видалення користувачів (DELETE /api/users/:id - deleteOne)
+- ✅ Масове видалення користувачів (DELETE /api/users - deleteMany)
 - ✅ Веб-інтерфейс для управління користувачами
 - ✅ Валідація даних на сервері
 - ✅ Обробка помилок
